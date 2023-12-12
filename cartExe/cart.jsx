@@ -91,7 +91,8 @@ const Products = (props) => {
   } = ReactBootstrap;
   //  Fetch Data
   const { Fragment, useState, useEffect, useReducer } = React;
-  const [query, setQuery] = useState("products");
+  const [query, setQuery] = useState("graphql"); // GraphQL Api Call
+  // const [query, setQuery] = useState("api/products"); // RESTful Api call 
   const [{ data, isLoading, isError }, doFetch] = useDataApi(
     "http://localhost:1337/api/products",
     {
@@ -214,8 +215,33 @@ const Products = (props) => {
   };
   // TODO: implement the restockProducts function
   const restockProducts = async (url) => {
-    const result = await axios(url)
-    const dataRS = result.data.data
+    const result = await axios({
+      url: url,
+      method: 'post',
+      data: {
+        query:`
+          query {
+            products {
+              data {
+                id
+                attributes {
+                  name
+                  country
+                  cost
+                  inStock
+                }
+              }
+            }
+          }
+        `
+      }
+
+      
+    })
+    const dataRS = result.data.data.products.data
+
+    console.log(result)
+    console.log(result.data.data.products.data)
 
     setItems(prevItems => {
       return prevItems.map((item, i) =>{
@@ -260,7 +286,7 @@ const Products = (props) => {
       <Row>
         <form
           onSubmit={(event) => {
-            restockProducts(`http://localhost:1337/api/${query}`);
+            restockProducts(`http://localhost:1337/${query}`);
             console.log(`Restock called on ${query}`);
             event.preventDefault();
           }}
